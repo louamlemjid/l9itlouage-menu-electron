@@ -32,7 +32,7 @@ import {
 //mongodb architeture
 // mongoose.connect(`${process.env.MONGODB_LINK}`);
 
-mongoose.connect(process.env.MONGODB_LINK);
+mongoose.connect(import.meta.env.VITE_MONGODB_LINK);
 
 const db = mongoose.connection;
 
