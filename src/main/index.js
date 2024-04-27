@@ -20,6 +20,7 @@ import icon from '../../resources/icon.png?asset'
 import {mongoose} from 'mongoose';
 import {nodemailer} from "nodemailer"
 import dotenv from 'dotenv';
+dotenv.config()
 import { 
   Louaje,
   Station,
@@ -30,7 +31,8 @@ import {
   const doc_file = new jsPDF();
 //mongodb architeture
 // mongoose.connect(`${process.env.MONGODB_LINK}`);
-mongoose.connect("mongodb+srv://louam-lemjid:8hAgfKf2ZDauLxoj@cluster0.mjqmopn.mongodb.net/Louajedb");
+
+mongoose.connect(process.env.MONGODB_LINK);
 
 const db = mongoose.connection;
 
