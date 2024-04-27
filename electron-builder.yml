@@ -1,5 +1,5 @@
 appId: com.electron.app
-productName: my-app
+productName: l9itlouage
 directories:
   buildResources: build
 files:
@@ -11,7 +11,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: my-app
+  executableName: l9itlouage
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
