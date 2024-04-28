@@ -41,12 +41,27 @@ let tray;
 let notification;
 let entreeAlert;
 let sortieAlert;
+
+const entreeNotification=(plaque)=>{
+  entreeAlert=new Notification({
+    title:'l9itlouage',
+    body:`دخول اللواج ذات اللوحة ${plaque}`,
+  icon:join(__dirname,"../../resources/logo.png")})
+}
+const sortieNotification=(plaque)=>{
+  sortieAlert=new Notification({
+    title:'l9itlouage',
+    body:`خروج اللواج ذات اللوحة ${plaque}`,
+  icon:join(__dirname,"../../resources/logo.png")})
+}
+
 const childWindow=()=>{
   const scanWindow = new BrowserWindow({
     width: 800,
     height: 700,
     show: true,
     autoHideMenuBar: true,
+    icon:join(__dirname,"../../resources/icon.png"),
     modal: true, // Make it modal if needed
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -55,7 +70,7 @@ const childWindow=()=>{
       nodeIntegration: true
     }
   })
-  scanWindow.loadFile(join(__dirname, '../../src/renderer/scan.html'))
+  scanWindow.loadFile(join(__dirname, '../renderer/scan.html'))
   
 }
 //recursive fct to buy tickets for achat-ticket( takes louages Ids and number of tickets)
@@ -653,20 +668,7 @@ app.whenReady().then(() => {
         }catch(error){console.error("error in payment route: ",error)}
       })
       ipcMain.on('child-message',()=>{
-        const scanWindow = new BrowserWindow({
-          width: 800,
-          height: 700,
-          show: true,
-          autoHideMenuBar: true,
-          modal: true, // Make it modal if needed
-          webPreferences: {
-            preload: join(__dirname, '../preload/index.js'),
-            sandbox: false,
-            // Allow loading external scripts
-            nodeIntegration: true
-          }
-        })
-        scanWindow.loadFile(join(__dirname, '../renderer/second/scan.html'))
+        childWindow()
       })
 
       //scan entree
@@ -675,11 +677,21 @@ app.whenReady().then(() => {
           console.log(`id recieved in scan-entree: ${id}`)
 
           const louage=await Louaje.findById({_id:id})
-          console.log(`fetched louage to string(): ${louage._id.toString()}`)
+          console.log(`fetched louage to string(): ${louage.id.toString()},${louage.cityDeparture},${louage.cityArrival}`)
 
-          
+          const check=await Station.findOne({email:ses.getUserAgent(),city:louage.cityArrival,"louages.destinationCity":louage.cityDeparture})
+        console.log("check result: ",check)
 
-          const defaultPlaces = {
+        const checkReverse=await Station.findOne({email:ses.getUserAgent(),city:louage.cityDeparture,"louages.destinationCity":louage.cityArrival})
+        console.log("checkReverse result: ",checkReverse)
+
+        const checkExistance=await Station.findOne({email:ses.getUserAgent(),"louages.lougeIds":louage.id.toString()})
+    
+    console.log(checkExistance)
+    console.log("boolean",(check!=null || checkReverse!=null) && checkExistance==null)
+
+          if((check!=null || checkReverse!=null) && checkExistance==null){
+            const defaultPlaces = {
               one: 'free',
               two: 'free',
               three: 'free',
@@ -688,44 +700,66 @@ app.whenReady().then(() => {
               six: 'free',
               seven: 'free',
               eight: 'free',
-              };
+            };
 
-          const stationInfo=await Station.findOne({email:ses.getUserAgent()})
-          console.log(stationInfo)
-          
-          const statusLouage=await Louaje.updateOne({id:louage._id.toString()},
-            {$set:{places:defaultPlaces,
-              status:true,
-              cityDeparture:stationInfo.city,
-              cityArrival:louage.cityDeparture,
-              availableSeats:8}})
-          console.log(`status louage est change ${statusLouage}`)
-          
-          const result2=await Station.findOneAndUpdate(
-              { email: ses.getUserAgent(), "louages.destinationCity": louage.cityDeparture },
-              { $addToSet: { "louages.$.lougeIds": louage._id.toString() },
-            $inc:{"louages.$.placesDisponibles":8,countLouaje:1} },
-              { new: true } 
-          )
-          console.log(result2)
+            const stationInfo=await Station.findOne({email:ses.getUserAgent()})
+            console.log(stationInfo)
+            
+            if(check!=null){
+              const statusLouage=await Louaje.updateOne({_id:louage.id.toString()},
+              {$set:{places:defaultPlaces,
+                status:true,
+                cityDeparture:stationInfo.city,
+                cityArrival:louage.cityDeparture,
+                availableSeats:8}})
+            console.log(`status louage est change ${statusLouage}`)
+            
+            const result2=await Station.findOneAndUpdate(
+                { email: ses.getUserAgent(), "louages.destinationCity": louage.cityDeparture },
+                { $addToSet: { "louages.$.lougeIds": louage._id.toString() },
+              $inc:{"louages.$.placesDisponibles":8,countLouaje:1} },
+                { new: true } 
+            )
+            console.log(result2)
+            }else if(checkReverse!=null){
+              const statusLouage=await Louaje.updateOne({_id:louage.id.toString()},
+              {$set:{places:defaultPlaces,
+                status:true,
+                availableSeats:8}})
+            console.log(`status louage est change ${statusLouage}`)
+            
+            const result2=await Station.findOneAndUpdate(
+                { email: ses.getUserAgent(), "louages.destinationCity": louage.cityArrival },
+                { $addToSet: { "louages.$.lougeIds": louage._id.toString() },
+              $inc:{"louages.$.placesDisponibles":8,countLouaje:1} },
+                { new: true } 
+            )
+            console.log(result2)
+            }
 
-          const destinations=await Station.findOne({email:ses.getUserAgent()}).lean()
-          console.log(destinations.louages)
-          
-          const louages = await Louaje.aggregate([{$project: { _id: { $toString: "$_id" },matricule: 1 ,availableSeats:1,status:1}}]);
-          console.log(`les louages: ${louages}`)
+            const destinations=await Station.findOne({email:ses.getUserAgent()}).lean()
+            console.log(destinations.louages)
+            
+            const louages = await Louaje.aggregate([{$project: { _id: { $toString: "$_id" },matricule: 1 ,availableSeats:1,status:1}}]);
+            console.log(`les louages: ${louages}`)
 
-          let listtax=await Station.aggregate([
-            { $match: { email: ses.getUserAgent()} },
-            { $unwind: '$tax' },
-            { $sort: { "tax.dayOfPaiment": -1 } },
-            { $group: {_id: "$_id", tax: { $push: "$tax" }}},
-            { $project: { _id: 0, tax: 1 } }
-        ]);
-        console.log(listtax[0].tax[0]._id.toString())
-        //louages -->> louagesOfAllTime
-          event.sender.send('destinations',destinations.louages,louages,listtax[0]?listtax[0].tax[0].paidLouages:[])
-          console.log("data is sent to react")
+            let listtax=await Station.aggregate([
+              { $match: { email: ses.getUserAgent()} },
+                    { $unwind: '$tax' },
+                    { $sort: { "tax.dayOfPaiment": -1 } },
+                    { $group: {_id: "$_id", tax: { $push: "$tax" }}},
+                    { $project: { _id: 0, tax: 1 } }
+                ]);
+                console.log(listtax[0].tax[0]._id.toString())
+                //louages -->> louagesOfAllTime
+                event.sender.send('destinations',destinations.louages,louages,listtax[0]?listtax[0].tax[0].paidLouages:[])
+                event.sender.send('scan',true)
+                console.log("data is sent to react")
+          }else{
+            console.log("louage does not match station properties !!!")
+            event.sender.send('scan',false)
+          }
+        
 
         }catch(error){console.error("error in scan-entree route:",error)}
       })
@@ -734,7 +768,7 @@ app.whenReady().then(() => {
       ipcMain.on('scan-sortie',async(event,id)=>{
         try{
           const louage=await Louaje.findById({_id:id})
-        console.log(`fetched louage from db: ${louage}`)
+        console.log(`fetched louage from db sortie : ${louage}`)
 
         
         const firstLouage= await Station.aggregate([
@@ -744,15 +778,14 @@ app.whenReady().then(() => {
           { $limit: 1 },
           { $project: { _id: 0, firstLouage: { $arrayElemAt: ["$louages.lougeIds", 0] } } }
         ]);
-        console.log(firstLouage)
+        console.log("firstLouage: ",firstLouage[0])
         
-        if(firstLouage[0].firstLouage==id){
-          
+        if(firstLouage[0]!=undefined){
+          if(firstLouage[0].firstLouage==id){
           const result2=await Station.findOneAndUpdate(
             { email:ses.getUserAgent(), "louages.destinationCity": louage.cityArrival },
             { $pull: { "louages.$.lougeIds": firstLouage[0].firstLouage },
-            $inc:{countLouaje:-1},
-            $set:{"louages.$.placesDisponibles":-louage.availableSeats} },
+            $inc:{countLouaje:-1,"louages.$.placesDisponibles":-louage.availableSeats}},
             { new: true } 
           )
           console.log("result2 : ",result2)
@@ -773,17 +806,27 @@ app.whenReady().then(() => {
             { $group: {_id: "$_id", tax: { $push: "$tax" }}},
             { $project: { _id: 0, tax: 1 } }
         ]);
-        console.log(listtax[0].tax[0]._id.toString())
+        console.log("list tax from scan sortie",listtax/*[0].tax[0]._id.toString() */)
         //louages -->> louagesOfAllTime
+        event.sender.send('scan',true)
           event.sender.send('destinations',destinations.louages,louages,listtax[0]?listtax[0].tax[0].paidLouages:[])
           console.log("data is sent to react")
           console.log("louage est sortie",id)
+          
+        }else{
+          event.sender.send('scan',false)
+        }
+      }else{
+          event.sender.send('scan',false)
         }
 
         }catch(error){
           console.error("error in scan-sortie route: ",error)
         }
       })
+      
+
+     
 
 
     }catch(error){

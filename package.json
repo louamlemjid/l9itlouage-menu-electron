@@ -23,6 +23,7 @@
     "@electron-toolkit/utils": "^3.0.0",
     "date-diff": "^1.0.2",
     "electron-updater": "^6.1.7",
+    "html5-qrcode": "^2.3.8",
     "jspdf": "^2.5.1",
     "mongoose": "^8.3.2",
     "node-cron": "^3.0.3",

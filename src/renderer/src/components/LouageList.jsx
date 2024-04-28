@@ -57,7 +57,7 @@ export default function LouageList(){
       setCityData(data);
       setLouages(listeouages)
       setPaidLouages(paidLouagesList)
-      console.log(listeouages,"paidlouages: ",paidLouagesList)
+      console.log(listeouages,"paidlouages: ",paidLouagesList,data)
     });
 
     // Clean up event listener
