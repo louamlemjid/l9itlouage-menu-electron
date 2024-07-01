@@ -1,34 +1,51 @@
-# my-app
+# l9itlouage Desktop Version
 
-An Electron application with React
+## Description
 
-## Recommended IDE Setup
+l9itlouage is a comprehensive solution designed to optimize the management of Louages (shared taxis) in Tunisia, featuring both web and desktop applications. The desktop version is specifically implemented in a station in Tunisia, providing enhanced control and automation through a QR code scanner.
 
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+## Features
 
-## Project Setup
+- **Hybrid Logic**: Combines the principles of Uber and bus systems.
+- **Station Pressure Reduction**: Decreases station congestion by 35-40%.
+- **Automated Check-In/Out**: Utilizes QR code scanning to automate 93% of the processes.
+- **Dynamic Louage Management**: Improves management efficiency by 95%.
 
-### Install
+## Technologies
 
-```bash
-$ npm install
-```
+- Electron.js
+- Node.js
+- Express.js
+- MongoDB
+- HTML
+- React
+- CSS
+- Node-cron
+- Vite
+- React-dom-router
+- Bootstrap
 
-### Development
+## Demo
 
-```bash
-$ npm run dev
-```
+[Watch Demo Video](https://youtu.be/hqHygbhn7Qk?si=ff2cZ87FKL81s8zw)
 
-### Build
+## GIF Overview
 
-```bash
-# For windows
-$ npm run build:win
+![App Overview](link-to-overview-gif)
 
-# For macOS
-$ npm run build:mac
+## GIF QR Scan Feature
 
-# For Linux
-$ npm run build:linux
-```
+![QR Scan Feature](link-to-qr-scan-gif)
+
+## Download
+
+[Download Desktop Version](link-to-google-drive)
+
+## Installation
+
+1. Download the installer from the link above.
+2. Run the installer and follow the on-screen instructions.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
